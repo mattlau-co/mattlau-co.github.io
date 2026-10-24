@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MattLau · Colección de Navidad</title>
+  <meta name="description" content="Detalles de Navidad y velas hechas a mano. Pide fácil por WhatsApp.">
+  <meta name="theme-color" content="#f4ede3">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    /* ============================================================
+       COLORES (cámbialos aquí si quieres otra paleta)
+    ============================================================ */
+    :root {
+      --fondo: #f4ede3;      /* crema */
+      --papel: #fbf8f3;
+      --tinta: #2b2420;      /* casi negro cálido */
+      --suave: #8a7b6f;
+      --linea: #e2d7c8;
+      --vino:  #7a2430;
+      --pino:  #2f4a3a;
+      --oro:   #b08d57;
+      --serif: 'Cormorant Garamond', Georgia, serif;
+      --sans:  'Jost', system-ui, -apple-system, sans-serif;
+    }
+    * { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+    body { margin: 0; background: var(--fondo); color: var(--tinta); font-family: var(--sans); line-height: 1.5; }
+    img { max-width: 100%; display: block; }
+    button { font: inherit; cursor: pointer; color: inherit; }
+    .contenedor { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+
+    /* ---------- Encabezado ---------- */
+    .encabezado { text-align: center; padding: 44px 0 26px; }
+    .antetitulo { font-size: 11px; letter-spacing: .32em; text-transform: uppercase; color: var(--vino); margin: 0; }
+    .marca { font-family: var(--serif); font-weight: 500; font-size: clamp(54px, 15vw, 92px); line-height: .95; margin: 10px 0 6px; letter-spacing: -.01em; }
+    .lema { font-family: var(--serif); font-style: italic; font-size: 20px; color: var(--suave); margin: 0; }
+    .adorno { display: flex; align-items: center; justify-content: center; gap: 12px; margin: 22px auto 0; color: var(--oro); max-width: 260px; }
+    .adorno::before, .adorno::after { content: ""; height: 1px; background: var(--oro); opacity: .55; flex: 1; }
+    .como { font-size: 12.5px; letter-spacing: .08em; color: var(--suave); margin: 16px 0 0; }
+    .como b { color: var(--tinta); font-weight: 500; }
+
+    /* ---------- Buscador y categorías ---------- */
+    .barra { position: sticky; top: 0; z-index: 20; background: rgba(244,237,227,.94); backdrop-filter: blur(8px); border-bottom: 1px solid var(--linea); }
+    .barra .contenedor { padding-top: 10px; padding-bottom: 0; display: grid; gap: 4px; }
+    .buscador { width: 100%; padding: 10px 2px; border: 0; border-bottom: 1px solid var(--linea); background: transparent; font: inherit; font-size: 15px; color: var(--tinta); outline: none; }
+    .buscador::placeholder { color: var(--suave); }
+    .buscador:focus { border-bottom-color: var(--tinta); }
+    .categorias { display: flex; gap: 22px; overflow-x: auto; scrollbar-width: none; }
+    .categorias::-webkit-scrollbar { display: none; }
+    .chip { flex: 0 0 auto; background: none; border: 0; border-bottom: 2px solid transparent; padding: 12px 0 10px; font-size: 13px; letter-spacing: .12em; text-transform: uppercase; color: var(--suave); white-space: nowrap; }
+    .chip.activa { color: var(--tinta); border-bottom-color: var(--tinta); }
+
+    /* ---------- Productos ---------- */
+    main { padding: 26px 0 120px; }
+    .conteo { color: var(--suave); font-size: 12px; letter-spacing: .1em; text-transform: uppercase; margin: 0 0 18px; }
+    .grilla { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 34px 16px; }
+    @media (min-width: 680px) { .grilla { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 44px 26px; } }
+    @media (min-width: 980px) { .grilla { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+
+    .producto { display: flex; flex-direction: column; }
+    .foto { aspect-ratio: 4 / 5; background: var(--papel); position: relative; overflow: hidden; display: grid; place-items: center;
+            border-radius: 50% 50% 6px 6px / 40% 40% 6px 6px; }   /* forma de arco */
+    .foto img, .foto video { width: 100%; height: 100%; object-fit: cover; transition: transform .5s ease; }
+    .producto .foto { cursor: pointer; }
+    .producto:hover .foto img, .producto:hover .foto video { transform: scale(1.04); }
+    .foto .sin-foto { font-size: 48px; }
+    .info { padding: 14px 2px 0; display: flex; flex-direction: column; flex: 1; text-align: center; }
+    .nombre { font-family: var(--serif); font-weight: 600; font-size: 19px; line-height: 1.15; margin: 0; cursor: pointer; }
+    .precio { font-size: 14px; letter-spacing: .06em; margin: 6px 0 0; }
+    .nota { font-family: var(--serif); font-style: italic; font-size: 15px; color: var(--oro); margin: 2px 0 0; min-height: 22px; }
+    .nota.agotado { color: var(--suave); }
+    .acciones { display: grid; grid-template-columns: 1fr 42px; gap: 6px; margin-top: 10px; }
+    .btn { border: 1px solid var(--tinta); border-radius: 999px; padding: 10px 12px; font-size: 12px; font-weight: 500; letter-spacing: .14em; text-transform: uppercase;
+           display: inline-flex; align-items: center; justify-content: center; gap: 6px; background: transparent; }
+    .btn-pedir1 { background: var(--tinta); color: var(--papel); }
+    .btn-pedir1:hover { background: var(--vino); border-color: var(--vino); }
+    .btn-bolsa { padding: 0; font-size: 20px; letter-spacing: 0; font-weight: 400; }
+    .btn-bolsa:hover { background: var(--tinta); color: var(--papel); }
+    .btn[disabled] { opacity: .35; cursor: not-allowed; }
+    .aroma { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-top: 8px; }
+    .aroma button { border: 1px solid var(--linea); background: transparent; border-radius: 999px; padding: 6px 4px; font-size: 11px; letter-spacing: .04em; color: var(--suave); }
+    .aroma button.on { border-color: var(--tinta); color: var(--tinta); background: var(--papel); font-weight: 500; }
+    .vacio { text-align: center; color: var(--suave); padding: 48px 0; font-family: var(--serif); font-style: italic; font-size: 19px; grid-column: 1 / -1; }
+
+    /* ---------- Bolsa flotante ---------- */
+    .flotante { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 30; background: var(--tinta); color: var(--papel); border: 0; border-radius: 999px;
+                padding: 14px 24px; font-size: 12.5px; letter-spacing: .16em; text-transform: uppercase; box-shadow: 0 10px 30px rgba(43,36,32,.28);
+                display: none; align-items: center; gap: 12px; white-space: nowrap; }
+    .flotante.visible { display: inline-flex; }
+    .flotante .bolita { background: var(--oro); color: var(--tinta); border-radius: 999px; min-width: 22px; height: 22px; display: inline-grid; place-items: center; font-size: 12px; letter-spacing: 0; padding: 0 6px; font-weight: 600; }
+
+    /* ---------- Panel de la bolsa ---------- */
+    .fondo-oscuro { position: fixed; inset: 0; background: rgba(43,36,32,.45); z-index: 40; display: none; }
+    .fondo-oscuro.abierto { display: block; }
+    .panel { position: fixed; left: 0; right: 0; bottom: 0; z-index: 50; background: var(--papel); border-radius: 22px 22px 0 0; max-height: 88vh; display: flex; flex-direction: column;
+             transform: translateY(100%); transition: transform .28s ease; }
+    .panel.abierto { transform: translateY(0); }
+    @media (min-width: 680px) { .panel { left: auto; right: 0; top: 0; bottom: 0; width: 410px; max-height: none; border-radius: 0; transform: translateX(100%); } .panel.abierto { transform: translateX(0); } }
+    .panel-cabeza { display: flex; justify-content: space-between; align-items: center; padding: 20px 22px 12px; border-bottom: 1px solid var(--linea); }
+    .panel-cabeza h2 { margin: 0; font-size: 26px; font-weight: 500; font-family: var(--serif); }
+    .cerrar { background: none; border: 0; font-size: 28px; line-height: 1; color: var(--suave); padding: 4px 8px; }
+    .lista { overflow-y: auto; padding: 6px 22px; flex: 1; }
+    .item { display: grid; grid-template-columns: 56px 1fr auto; gap: 12px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--linea); }
+    .item:last-child { border-bottom: 0; }
+    .item .mini { width: 56px; height: 70px; border-radius: 50% 50% 4px 4px / 40% 40% 4px 4px; background: var(--fondo); overflow: hidden; display: grid; place-items: center; font-size: 24px; }
+    .item .mini img { width: 100%; height: 100%; object-fit: cover; }
+    .item .n { font-family: var(--serif); font-weight: 600; font-size: 17px; line-height: 1.2; }
+    .item .p { color: var(--suave); font-size: 12.5px; }
+    .cantidad { display: inline-flex; align-items: center; border: 1px solid var(--linea); border-radius: 999px; }
+    .cantidad button { background: none; border: 0; width: 30px; height: 30px; font-size: 16px; }
+    .cantidad span { min-width: 20px; text-align: center; font-size: 14px; font-weight: 500; }
+    .panel-pie { padding: 16px 22px 22px; border-top: 1px solid var(--linea); display: grid; gap: 12px; }
+    .total { display: flex; justify-content: space-between; align-items: baseline; }
+    .total span:first-child { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--suave); }
+    .total span:last-child { font-family: var(--serif); font-size: 28px; font-weight: 600; }
+    .campo { width: 100%; padding: 12px 14px; border: 1px solid var(--linea); border-radius: 999px; font: inherit; font-size: 14px; background: #fff; }
+    .btn-enviar { background: var(--tinta); color: var(--papel); padding: 15px; font-size: 12.5px; }
+    .btn-enviar:hover { background: var(--vino); border-color: var(--vino); }
+    .vaciar { background: none; border: 0; color: var(--suave); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; }
+
+    /* ---------- Detalle de un producto ---------- */
+    .detalle { position: fixed; inset: 0; z-index: 55; display: none; place-items: center; padding: 18px; }
+    .detalle.abierto { display: grid; }
+    .detalle-caja { background: var(--papel); border-radius: 22px; max-width: 420px; width: 100%; max-height: 92vh; overflow-y: auto; position: relative; padding: 18px 18px 22px; }
+    .detalle-caja .foto { aspect-ratio: 4 / 5; border-radius: 50% 50% 10px 10px / 46% 46% 10px 10px; }
+    .detalle-caja .info { padding-top: 16px; }
+    .detalle-caja .nombre { font-size: 26px; cursor: default; }
+    .detalle-caja .descripcion { color: var(--suave); font-size: 14.5px; margin: 10px 0 0; }
+    .detalle-caja .cerrar { position: absolute; top: 10px; right: 12px; z-index: 2; background: var(--papel); border-radius: 999px; }
+
+    /* ---------- Pie ---------- */
+    footer { text-align: center; color: var(--suave); padding: 10px 20px 110px; }
+    footer .firma { font-family: var(--serif); font-size: 26px; color: var(--tinta); margin: 0; }
+    footer p { margin: 4px 0; font-size: 13px; }
+    footer a { color: var(--tinta); }
+
+    .aviso { position: fixed; left: 50%; top: 16px; transform: translateX(-50%) translateY(-140%); z-index: 60; background: var(--tinta); color: var(--papel);
+             padding: 10px 18px; border-radius: 999px; font-size: 13.5px; transition: transform .25s ease; white-space: nowrap; }
+    .aviso.visible { transform: translateX(-50%) translateY(0); }
+
+    /* ---------- Anuncio, ofertas y galería ---------- */
+    .anuncio { background: var(--vino); color: var(--papel); text-align: center; font-size: 12.5px; letter-spacing: .08em; padding: 9px 16px; display: none; }
+    .anuncio.visible { display: block; }
+    .sello { position: absolute; top: 12%; right: 8px; background: var(--vino); color: var(--papel); font-size: 11px; font-weight: 600; letter-spacing: .06em; padding: 4px 9px; border-radius: 999px; }
+    .precio s { color: var(--suave); margin-right: 6px; font-size: 12.5px; }
+    .precio b { font-weight: 600; color: var(--vino); }
+    .galeria { display: flex; overflow-x: auto; scroll-snap-type: x mandatory; scrollbar-width: none; aspect-ratio: 4 / 5;
+               border-radius: 50% 50% 10px 10px / 46% 46% 10px 10px; background: var(--fondo); }
+    .galeria::-webkit-scrollbar { display: none; }
+    .galeria > * { flex: 0 0 100%; width: 100%; height: 100%; object-fit: cover; scroll-snap-align: center; display: grid; place-items: center; font-size: 60px; }
+    .puntos { display: flex; justify-content: center; gap: 6px; margin-top: 10px; min-height: 8px; }
+    .puntos span { width: 7px; height: 7px; border-radius: 999px; background: var(--linea); transition: background .2s; }
+    .puntos span.on { background: var(--tinta); }
+    .cargando { text-align: center; color: var(--suave); font-family: var(--serif); font-style: italic; font-size: 19px; padding: 40px 0; grid-column: 1 / -1; }
+  </style>
+</head>
+<body>
+  <div class="anuncio" id="anuncio"></div>
+
+  <header class="encabezado">
+    <div class="contenedor">
+      <p class="antetitulo">Colección de Navidad</p>
+      <h1 class="marca">MattLau</h1>
+      <p class="lema">Detalles de Navidad para tu casa</p>
+      <div class="adorno">✦</div>
+      <p class="como"><b>Elige</b> · pide por <b>WhatsApp</b> · <span id="entregaTienda">entregas en Medellín</span></p>
+    </div>
+  </header>
+
+  <div class="barra">
+    <div class="contenedor">
+      <input class="buscador" id="buscador" type="search" placeholder="Buscar..." oninput="pintar()">
+      <div class="categorias" id="categorias"></div>
+    </div>
+  </div>
+
+  <main class="contenedor">
+    <p class="conteo" id="conteo"></p>
+    <div class="grilla" id="grilla"><p class="cargando">Cargando la colección…</p></div>
+  </main>
+
+  <footer>
+    <p class="firma">MattLau</p>
+    <p>¿Tienes una pregunta? <a id="linkContacto" href="#" target="_blank" rel="noopener">Escríbenos por WhatsApp</a></p>
+  </footer>
+
+  <button class="flotante" id="flotante" onclick="abrirCarrito()">Tu bolsa <span class="bolita" id="bolita">0</span></button>
+
+  <div class="fondo-oscuro" id="fondo" onclick="cerrarCarrito(); cerrarDetalle()"></div>
+  <aside class="panel" id="panel" aria-label="Tu bolsa">
+    <div class="panel-cabeza">
+      <h2>Tu bolsa</h2>
+      <button class="cerrar" onclick="cerrarCarrito()" aria-label="Cerrar">×</button>
+    </div>
+    <div class="lista" id="lista"></div>
+    <div class="panel-pie">
+      <div class="total"><span>Total</span><span id="total">$0</span></div>
+      <input class="campo" id="nombreCliente" type="text" placeholder="Tu nombre (opcional)" autocomplete="name">
+      <button class="btn btn-enviar" onclick="pedirCarrito()">Enviar pedido por WhatsApp</button>
+      <button class="vaciar" onclick="vaciarCarrito()">Vaciar la bolsa</button>
+    </div>
+  </aside>
+
+  <div class="detalle" id="detalle" onclick="if(event.target===this)cerrarDetalle()">
+    <div class="detalle-caja" id="detalleCaja"></div>
+  </div>
+
+  <div class="aviso" id="aviso"></div>
+
+  <script src="comun.js?v=1"></script>
+  <script src="productos-iniciales.js?v=1"></script>
+  <script src="fotos.js?v=1"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script>
+    // ================================================================
+    //  CATÁLOGO MATTLAU
+    //  Los productos, precios, unidades y anuncios se cambian desde el panel (admin.html).
+    //  No hace falta tocar este archivo.
+    // ================================================================
+    const $ = id => document.getElementById(id);
+    const { dinero, esc, conDescuento } = ML;
+
+    let PRODUCTOS = window.PRODUCTOS_INICIALES || {};
+    let AJUSTES = window.AJUSTES_INICIALES || {};
+    const FOTOS_DB = {};            // fotos subidas desde el panel
+    let categoriaActiva = 'Todo';
+    const conAroma = {};            // elección "con aroma" por producto
+    let carrito = {};               // { "id" o "id|a": cantidad }
+    try { carrito = JSON.parse(localStorage.getItem('bolsa_mattlau')) || {}; } catch { carrito = {}; }
+    const guardarCarrito = () => { try { localStorage.setItem('bolsa_mattlau', JSON.stringify(carrito)); } catch {} };
+
+    const whatsapp = () => String(AJUSTES.whatsapp || '573015264838').replace(/\D/g, '');
+    const linkWhatsApp = texto => `https://wa.me/${whatsapp()}?text=${encodeURIComponent(texto)}`;
+    const agotado = p => (Number(p.stock) || 0) <= 0;
+
+    // ---------- Fotos ----------
+    function rutaFoto(ref) {
+      if (!ref) return '';
+      if (ref.startsWith('db:')) return FOTOS_DB[ref.slice(3)] || '';
+      return (window.FOTOS && FOTOS[ref]) || ref;
+    }
+    const todasLasFotos = p => [p.foto, ...Object.values(p.fotos || {})].filter(Boolean);
+    function imagen(p, ref, clase = 'sin-foto') {
+      const src = rutaFoto(ref);
+      return src ? `<img src="${esc(src)}" alt="${esc(p.nombre)}" loading="lazy">` : `<span class="${clase}">${esc(p.emoji || '🎁')}</span>`;
+    }
+    // En la cuadrícula siempre se ve la foto; el video aparece al abrir el producto
+    function media(p) { return imagen(p, p.portada || p.foto); }
+
+    // ---------- Precios ----------
+    const precioBase = (p, a) => (Number(p.precio) || 0) + (a && p.aroma ? Number(p.aroma) : 0);
+    const precioFinal = (p, a) => conDescuento(p.precio, p.descuento) + (a && p.aroma ? Number(p.aroma) : 0);
+    function htmlPrecio(p, a) {
+      const f = precioFinal(p, a), b = precioBase(p, a);
+      return f < b ? `<s>${dinero(b)}</s><b>${dinero(f)}</b>` : dinero(f);
+    }
+    function nota(p) {
+      if (agotado(p)) return '<p class="nota agotado">Agotado</p>';
+      if (Number(p.descuento) > 0) return '<p class="nota">En oferta</p>';
+      if (Number(p.stock) === 1) return '<p class="nota">Pieza única</p>';
+      if (p.nuevo) return '<p class="nota">Novedad</p>';
+      return '<p class="nota"></p>';
+    }
+    const sello = p => Number(p.descuento) > 0 && !agotado(p) ? `<span class="sello">−${Math.round(p.descuento)}%</span>` : '';
+
+    function selectorAroma(p, id) {
+      if (!p.aroma) return '';
+      const a = !!conAroma[id];
+      return `<div class="aroma">
+        <button class="${a ? '' : 'on'}" onclick="elegirAroma('${id}', false)">Sin aroma</button>
+        <button class="${a ? 'on' : ''}" onclick="elegirAroma('${id}', true)">Con aroma +${dinero(p.aroma)}</button>
+      </div>`;
+    }
+    function elegirAroma(id, a) {
+      conAroma[id] = a; pintar();
+      if ($('detalle').classList.contains('abierto')) verDetalle(id);
+    }
+
+    // ---------- Lista ordenada ----------
+    function visibles() {
+      return Object.entries(PRODUCTOS)
+        .filter(([, p]) => p && !p.oculto && p.nombre)
+        .map(([id, p]) => ({ ...p, id }))
+        .sort((x, y) => (y.destacado ? 1 : 0) - (x.destacado ? 1 : 0) || (Number(x.orden) || 0) - (Number(y.orden) || 0));
+    }
+
+    function pintarCategorias() {
+      const cats = ['Todo', ...new Set(visibles().map(p => p.categoria || 'Otros'))];
+      if (!cats.includes(categoriaActiva)) categoriaActiva = 'Todo';
+      $('categorias').innerHTML = cats.map(c =>
+        `<button class="chip ${c === categoriaActiva ? 'activa' : ''}" onclick="elegirCategoria(this.dataset.c)" data-c="${esc(c)}">${esc(c)}</button>`).join('');
+    }
+    function elegirCategoria(c) { categoriaActiva = c; pintarCategorias(); pintar(); }
+
+    function pintar() {
+      const q = $('buscador').value.trim().toLowerCase();
+      const lista = visibles()
+        .filter(p => categoriaActiva === 'Todo' || (p.categoria || 'Otros') === categoriaActiva)
+        .filter(p => !q || (p.nombre + ' ' + (p.descripcion || '') + ' ' + p.categoria).toLowerCase().includes(q));
+      $('conteo').textContent = `${lista.length} ${lista.length === 1 ? 'pieza' : 'piezas'}`;
+      $('grilla').innerHTML = lista.map(p => {
+        const off = agotado(p) ? 'disabled' : '';
+        return `
+        <article class="producto">
+          <div class="foto" onclick="verDetalle('${p.id}')">${media(p)}${sello(p)}</div>
+          <div class="info">
+            <h3 class="nombre" onclick="verDetalle('${p.id}')">${esc(p.nombre)}</h3>
+            <div class="precio">${htmlPrecio(p, conAroma[p.id])}</div>
+            ${nota(p)}
+            ${selectorAroma(p, p.id)}
+            <div class="acciones">
+              <button class="btn btn-pedir1" onclick="comprarYa('${p.id}')" ${off}>Pedir</button>
+              <button class="btn btn-bolsa" onclick="agregar('${p.id}')" ${off} aria-label="Agregar a la bolsa" title="Agregar a la bolsa">+</button>
+            </div>
+          </div>
+        </article>`;
+      }).join('') || '<p class="vacio">No encontramos nada con esa búsqueda.</p>';
+      activarVideos($('grilla'));
+    }
+
+    const observador = 'IntersectionObserver' in window ? new IntersectionObserver(es => es.forEach(e => {
+      const v = e.target;
+      if (e.isIntersecting) { const r = v.play(); if (r && r.catch) r.catch(() => {}); } else v.pause();
+    }), { threshold: 0.35 }) : null;
+    function activarVideos(zona) {
+      zona.querySelectorAll('video').forEach(v => { v.muted = true; if (observador) observador.observe(v); else v.play().catch(() => {}); });
+    }
+
+    // ---------- Detalle con galería ----------
+    function verDetalle(id) {
+      const p = { ...PRODUCTOS[id], id };
+      if (!PRODUCTOS[id]) return;
+      const off = agotado(p) ? 'disabled' : '';
+      const fotos = todasLasFotos(p);
+      const slides = [];
+      if (p.video) slides.push(`<video src="${esc(p.video)}" poster="${esc(rutaFoto(p.foto))}" muted loop playsinline autoplay></video>`);
+      fotos.forEach(f => slides.push(imagen(p, f)));
+      if (p.portada) slides.push(imagen(p, p.portada));
+      if (!slides.length) slides.push(imagen(p, ''));
+      $('detalleCaja').innerHTML = `
+        <button class="cerrar" onclick="cerrarDetalle()" aria-label="Cerrar">×</button>
+        <div class="galeria" id="galeria" onscroll="moverPuntos()">${slides.join('')}</div>
+        <div class="puntos" id="puntos">${slides.length > 1 ? slides.map((_, k) => `<span class="${k ? '' : 'on'}"></span>`).join('') : ''}</div>
+        <div class="info">
+          <h3 class="nombre">${esc(p.nombre)}</h3>
+          <div class="precio">${htmlPrecio(p, conAroma[id])}</div>
+          ${nota(p)}
+          ${selectorAroma(p, id)}
+          ${p.descripcion ? `<p class="descripcion">${esc(p.descripcion)}</p>` : ''}
+          <div class="acciones" style="grid-template-columns:1fr; margin-top:16px">
+            <button class="btn btn-pedir1" onclick="comprarYa('${id}')" ${off}>Pedir por WhatsApp</button>
+            <button class="btn" onclick="agregar('${id}'); cerrarDetalle()" ${off}>Agregar a la bolsa</button>
+          </div>
+        </div>`;
+      $('detalle').classList.add('abierto'); $('fondo').classList.add('abierto');
+      $('detalleCaja').querySelectorAll('video').forEach(v => { v.muted = true; v.play().catch(() => {}); });
+    }
+    function moverPuntos() {
+      const g = $('galeria'); if (!g) return;
+      const k = Math.round(g.scrollLeft / g.clientWidth);
+      $('puntos').querySelectorAll('span').forEach((s, n) => s.classList.toggle('on', n === k));
+    }
+    function cerrarDetalle() {
+      $('detalle').classList.remove('abierto');
+      if (!$('panel').classList.contains('abierto')) $('fondo').classList.remove('abierto');
+    }
+
+    // ---------- Pedir ----------
+    function comprarYa(id) {
+      const p = PRODUCTOS[id]; if (!p) return;
+      const a = !!(p.aroma && conAroma[id]);
+      const texto = `Hola 👋 Vi el catálogo de MattLau y me interesa:\n\n• ${p.nombre}${a ? ' (con aroma)' : ''} — ${dinero(precioFinal(p, a))}\n\n¿Está disponible?`;
+      window.open(linkWhatsApp(texto), '_blank');
+    }
+    const unidadesDe = id => (carrito[id] || 0) + (carrito[id + '|a'] || 0);
+    function topeStock(id) {
+      const p = PRODUCTOS[id], s = Number(p && p.stock) || 0;
+      if (unidadesDe(id) >= s) { mostrarAviso(s === 1 ? 'Es una pieza única' : `Solo tenemos ${s} unidades`); return true; }
+      return false;
+    }
+    function agregar(id) {
+      if (!PRODUCTOS[id] || topeStock(id)) return;
+      const k = PRODUCTOS[id].aroma && conAroma[id] ? id + '|a' : id;
+      carrito[k] = (carrito[k] || 0) + 1;
+      guardarCarrito(); pintarCarrito();
+      mostrarAviso(`${PRODUCTOS[id].nombre} · en tu bolsa`);
+    }
+    function cambiarCantidad(k, delta) {
+      if (delta > 0 && topeStock(k.split('|')[0])) return;
+      carrito[k] = (carrito[k] || 0) + delta;
+      if (carrito[k] <= 0) delete carrito[k];
+      guardarCarrito(); pintarCarrito();
+      if (!Object.keys(carrito).length) cerrarCarrito();
+    }
+    function vaciarCarrito() { carrito = {}; guardarCarrito(); pintarCarrito(); cerrarCarrito(); }
+
+    function itemsCarrito() {
+      return Object.entries(carrito).map(([k, cant]) => {
+        const [id, x] = k.split('|'); const p = PRODUCTOS[id];
+        if (!p || p.oculto || agotado(p)) return null;
+        const a = x === 'a' && !!p.aroma;
+        return { ...p, k, id, cant: Math.min(cant, Number(p.stock) || 0),
+                 nombre: p.nombre + (a ? ' · con aroma' : ''), precio: precioFinal(p, a) };
+      }).filter(Boolean);
+    }
+    function pintarCarrito() {
+      const items = itemsCarrito();
+      const unidades = items.reduce((s, x) => s + x.cant, 0);
+      const total = items.reduce((s, x) => s + x.cant * x.precio, 0);
+      $('bolita').textContent = unidades;
+      $('flotante').classList.toggle('visible', unidades > 0);
+      $('total').textContent = dinero(total);
+      $('lista').innerHTML = items.map(x => `
+        <div class="item">
+          <div class="mini">${imagen(x, x.portada || x.foto, '')}</div>
+          <div>
+            <div class="n">${esc(x.nombre)}</div>
+            <div class="p">${dinero(x.precio)}${x.cant > 1 ? ' c/u · ' + dinero(x.precio * x.cant) : ''}</div>
+          </div>
+          <div class="cantidad">
+            <button onclick="cambiarCantidad('${x.k}', -1)" aria-label="Quitar uno">−</button>
+            <span>${x.cant}</span>
+            <button onclick="cambiarCantidad('${x.k}', 1)" aria-label="Agregar uno">+</button>
+          </div>
+        </div>`).join('') || '<p class="vacio">Tu bolsa está vacía.</p>';
+    }
+    function pedirCarrito() {
+      const items = itemsCarrito(); if (!items.length) return;
+      const total = items.reduce((s, x) => s + x.cant * x.precio, 0);
+      const nombre = $('nombreCliente').value.trim();
+      const lineas = items.map(x => `• ${x.cant} x ${x.nombre} — ${dinero(x.precio * x.cant)}`).join('\n');
+      const texto = `Hola 👋${nombre ? ' Soy ' + nombre + '.' : ''} Quiero hacer este pedido de MattLau:\n\n${lineas}\n\n*Total: ${dinero(total)}*\n\n¿Me confirmas disponibilidad y entrega?`;
+      window.open(linkWhatsApp(texto), '_blank');
+    }
+    function abrirCarrito() { $('panel').classList.add('abierto'); $('fondo').classList.add('abierto'); }
+    function cerrarCarrito() { $('panel').classList.remove('abierto'); if (!$('detalle').classList.contains('abierto')) $('fondo').classList.remove('abierto'); }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { cerrarDetalle(); cerrarCarrito(); } });
+
+    let tAviso;
+    function mostrarAviso(texto) {
+      $('aviso').textContent = texto; $('aviso').classList.add('visible');
+      clearTimeout(tAviso); tAviso = setTimeout(() => $('aviso').classList.remove('visible'), 1700);
+    }
+
+    function pintarAjustes() {
+      $('entregaTienda').textContent = AJUSTES.entrega || 'entregas en Medellín';
+      const an = AJUSTES.anuncio || {};
+      $('anuncio').textContent = an.texto || '';
+      $('anuncio').classList.toggle('visible', !!(an.activo && an.texto));
+      $('linkContacto').href = linkWhatsApp('Hola 👋 Vi el catálogo de MattLau y tengo una pregunta.');
+    }
+    function pintarTodo() { pintarAjustes(); pintarCategorias(); pintar(); pintarCarrito(); }
+
+    // ---------- Datos en vivo desde Firebase ----------
+    // Si no hay internet o aún no se han cargado los productos en el panel, se muestran los iniciales.
+    function conectar() {
+      if (!window.firebase) { pintarTodo(); return; }
+      try {
+        if (!firebase.apps.length) firebase.initializeApp(FIREBASE_CONFIG);
+        const db = firebase.database();
+        const raiz = db.ref(RAIZ_CATALOGO);
+        let primera = true;
+        const respaldo = setTimeout(() => { if (primera) pintarTodo(); }, 4000);
+        raiz.child('productos').on('value', s => {
+          const v = s.val();
+          if (v) PRODUCTOS = v;
+          primera = false; clearTimeout(respaldo);
+          cargarFotosDB(db); pintarTodo();
+        }, () => { primera = false; clearTimeout(respaldo); pintarTodo(); });
+        raiz.child('ajustes').on('value', s => { const v = s.val(); if (v) AJUSTES = { ...AJUSTES, ...v }; pintarAjustes(); }, () => {});
+      } catch (e) { console.warn(e); pintarTodo(); }
+    }
+    function cargarFotosDB(db) {
+      const faltan = new Set();
+      Object.values(PRODUCTOS).forEach(p => p && [...todasLasFotos(p), p.portada || ''].filter(Boolean).forEach(f => {
+        if (f.startsWith('db:') && !(f.slice(3) in FOTOS_DB)) faltan.add(f.slice(3));
+      }));
+      faltan.forEach(fid => {
+        FOTOS_DB[fid] = '';
+        db.ref(RAIZ_CATALOGO + '/fotos/' + fid).once('value').then(s => { FOTOS_DB[fid] = s.val() || ''; pintar(); pintarCarrito(); }).catch(() => {});
+      });
+    }
+    conectar();
+  </script>
+</body>
+</html>
