@@ -190,6 +190,11 @@
           <input class="campo" id="ajEntrega" maxlength="60" placeholder="entregas en Medellín">
         </div>
         <button class="btn ancho" onclick="guardarAjustes()">Guardar cambios</button>
+        <div class="seccion" style="margin-top:18px">
+          <h3>Respaldo del catálogo</h3>
+          <p class="ayuda" style="margin-top:0">Descarga un archivo con todos tus productos, precios, unidades, fotos subidas y el anuncio, tal como están ahora. Guárdalo como copia de seguridad o envíalo para armar las fotos de WhatsApp.</p>
+          <button class="btn claro ancho" id="btnRespaldo" onclick="descargarRespaldo()">Descargar respaldo</button>
+        </div>
       </div>
 
       <!-- Ayuda -->
@@ -661,6 +666,22 @@
         });
         toast('Guardado ✓');
       } catch (err) { toast(errorFirebase(err), true); }
+    }
+
+    async function descargarRespaldo() {
+      const b = $('btnRespaldo'); b.disabled = true; b.textContent = 'Preparando…';
+      try {
+        const snap = await refCat.once('value');
+        const datos = { fecha: new Date().toISOString(), catalogo: snap.val() || {} };
+        const blob = new Blob([JSON.stringify(datos)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = 'mattlau-respaldo-' + new Date().toISOString().slice(0, 10) + '.json';
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+        toast('Respaldo descargado ✓');
+      } catch (err) { toast(errorFirebase(err), true); }
+      finally { b.disabled = false; b.textContent = 'Descargar respaldo'; }
     }
 
     function pestana(n) {
