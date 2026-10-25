@@ -131,6 +131,32 @@
     .extra button { border: 1px solid var(--tinta); background: var(--tinta); color: var(--papel); border-radius: 999px; padding: 8px 14px; font-size: 12.5px; white-space: nowrap; }
     .extra button.ya { background: transparent; color: var(--tinta); }
     .extra button[disabled] { opacity: .35; }
+    .extra .cantidad { background: var(--papel); }
+    .extra .cantidad button { background: none; color: var(--tinta); border: 0; padding: 0; width: 30px; height: 30px; font-size: 16px; }
+    .extra .mini { cursor: zoom-in; position: relative; }
+    .extra .mini::after { content: "⤢"; position: absolute; right: 3px; bottom: 2px; font-size: 11px; color: var(--papel); background: rgba(43,36,32,.55); border-radius: 6px; padding: 0 3px; line-height: 1.3; }
+    .oferta { position: fixed; inset: 0; z-index: 58; display: none; place-items: end center; }
+    .oferta.abierto { display: grid; }
+    .oferta-velo { position: absolute; inset: 0; background: rgba(43,36,32,.5); }
+    .oferta-caja { position: relative; background: var(--papel); width: 100%; max-width: 460px; border-radius: 22px 22px 0 0; padding: 20px 18px calc(18px + env(safe-area-inset-bottom, 0px)); display: grid; gap: 12px; max-height: 90vh; overflow-y: auto; }
+    @media (min-width: 680px) { .oferta { place-items: center; } .oferta-caja { border-radius: 22px; } }
+    .oferta-caja h2 { margin: 0; font-family: var(--serif); font-size: 26px; font-weight: 600; line-height: 1.1; }
+    .oferta-caja .sub { margin: 0; color: var(--suave); font-size: 13.5px; }
+    .oferta-prod { display: grid; grid-template-columns: 52px 1fr; gap: 10px; align-items: center; border-bottom: 1px solid var(--linea); padding-bottom: 12px; }
+    .oferta-prod .mini { width: 52px; height: 64px; border-radius: 50% 50% 4px 4px / 40% 40% 4px 4px; overflow: hidden; background: var(--fondo); display: grid; place-items: center; }
+    .oferta-prod .mini img { width: 100%; height: 100%; object-fit: cover; }
+    .oferta-prod .n { font-family: var(--serif); font-weight: 600; font-size: 17px; line-height: 1.2; }
+    .oferta-prod .p { color: var(--suave); font-size: 13px; }
+    .oferta-caja .extra { background: var(--fondo); }
+    .oferta-caja .extra .mini { width: 64px; height: 64px; }
+    .oferta-caja .extra { grid-template-columns: 64px 1fr auto; }
+    .oferta-total { display: flex; justify-content: space-between; align-items: baseline; padding-top: 4px; }
+    .oferta-total span:first-child { font-size: 12px; letter-spacing: .16em; text-transform: uppercase; color: var(--suave); }
+    .oferta-total span:last-child { font-family: var(--serif); font-size: 26px; font-weight: 600; }
+    .lupa { position: fixed; inset: 0; z-index: 65; background: rgba(20,16,14,.88); display: none; place-items: center; padding: 20px; cursor: zoom-out; }
+    .lupa.abierto { display: grid; }
+    .lupa img { max-width: min(92vw, 520px); max-height: 78vh; border-radius: 16px; }
+    .lupa p { color: #fff; text-align: center; font-family: var(--serif); font-size: 22px; margin: 12px 0 0; }
     .vaciar { background: none; border: 0; color: var(--suave); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; }
 
     /* ---------- Detalle de un producto ---------- */
@@ -220,6 +246,14 @@
   <div class="detalle" id="detalle" onclick="if(event.target===this)cerrarDetalle()">
     <div class="detalle-caja" id="detalleCaja"></div>
   </div>
+
+  <!-- Antes de pedir: ofrecer detalles -->
+  <div class="oferta" id="oferta" role="dialog" aria-label="Agregar un detalle">
+    <div class="oferta-velo" onclick="cerrarOferta()"></div>
+    <div class="oferta-caja" id="ofertaCaja"></div>
+  </div>
+  <!-- Ver la foto de un detalle en grande -->
+  <div class="lupa" id="lupa" onclick="this.classList.remove('abierto')"><div><img id="lupaImg" alt=""><p id="lupaTxt"></p></div></div>
 
   <div class="aviso" id="aviso"></div>
 
@@ -383,10 +417,72 @@
     }
 
     // ---------- Pedir ----------
+    // Foto grande de un detalle
+    function verFoto(id) {
+      const p = PRODUCTOS[id]; if (!p) return;
+      const src = rutaFoto(p.portada || p.foto);
+      if (!src) return;
+      $('lupaImg').src = src; $('lupaTxt').textContent = p.nombre + ' · ' + dinero(precioFinal(p, false));
+      $('lupa').classList.add('abierto');
+    }
+
+    const complementosDisponibles = () => Object.entries(PRODUCTOS)
+      .filter(([, p]) => p && p.complemento && !p.oculto && p.nombre && !agotado(p))
+      .map(([id, p]) => ({ ...p, id }))
+      .sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+
+    // Opción 1: pedir un producto directo. Antes, se ofrecen los detalles.
+    let pedidoDirecto = null;   // { id, a, extras: { id: cantidad } }
     function comprarYa(id) {
       const p = PRODUCTOS[id]; if (!p) return;
       const a = !!(p.aroma && conAroma[id]);
-      const texto = `Hola 👋 Vi el catálogo de MattLau y me interesa:\n\n• ${p.nombre}${a ? ' (con aroma)' : ''} — ${dinero(precioFinal(p, a))}\n\n¿Está disponible?`;
+      if (p.complemento || !complementosDisponibles().length) { enviarDirecto({ id, a, extras: {} }); return; }
+      pedidoDirecto = { id, a, extras: {} };
+      cerrarDetalle(); pintarOferta();
+      $('oferta').classList.add('abierto');
+    }
+    function pintarOferta() {
+      const { id, a, extras } = pedidoDirecto; const p = PRODUCTOS[id];
+      const lista = complementosDisponibles();
+      const total = precioFinal(p, a) + lista.reduce((s, x) => s + (extras[x.id] || 0) * precioFinal(x, false), 0);
+      const hay = Object.values(extras).some(v => v > 0);
+      $('ofertaCaja').innerHTML = `
+        <h2>🎁 ¿Le agregas un detalle?</h2>
+        <p class="sub">Toca la foto para verlo en grande.</p>
+        <div class="oferta-prod">
+          <div class="mini">${imagen(p, p.portada || p.foto, '')}</div>
+          <div><div class="n">${esc(p.nombre)}${a ? ' · con aroma' : ''}</div><div class="p">${dinero(precioFinal(p, a))}</div></div>
+        </div>
+        <div class="extras-fila">${lista.map(x => {
+          const c = extras[x.id] || 0, max = Number(x.stock) || 0;
+          return `<div class="extra">
+            <div class="mini" onclick="verFoto('${x.id}')" title="Ver foto">${imagen(x, x.portada || x.foto, '')}</div>
+            <div onclick="verFoto('${x.id}')"><div class="n">${esc(x.nombre)}</div><div class="p">+${dinero(precioFinal(x, false))}</div></div>
+            ${c ? `<div class="cantidad"><button onclick="cambiarExtra('${x.id}', -1)" aria-label="Quitar uno">−</button><span>${c}</span><button onclick="cambiarExtra('${x.id}', 1)" ${c >= max ? 'disabled' : ''} aria-label="Agregar uno">+</button></div>`
+                : `<button onclick="cambiarExtra('${x.id}', 1)">+ Agregar</button>`}
+          </div>`; }).join('')}</div>
+        <div class="oferta-total"><span>Total</span><span>${dinero(total)}</span></div>
+        <button class="btn btn-enviar" onclick="enviarDirecto(pedidoDirecto)">${hay ? 'Pedir con mis detalles' : 'Pedir por WhatsApp'}</button>
+        <button class="vaciar" onclick="enviarDirecto({ ...pedidoDirecto, extras: {} })">No, gracias, solo el producto</button>`;
+    }
+    function cambiarExtra(id, d) {
+      const max = Number(PRODUCTOS[id] && PRODUCTOS[id].stock) || 0;
+      const v = Math.max(0, Math.min(max, (pedidoDirecto.extras[id] || 0) + d));
+      pedidoDirecto.extras[id] = v; pintarOferta();
+    }
+    function cerrarOferta() { $('oferta').classList.remove('abierto'); pedidoDirecto = null; }
+    function enviarDirecto({ id, a, extras }) {
+      const p = PRODUCTOS[id]; if (!p) return;
+      const lineas = [`• ${p.nombre}${a ? ' (con aroma)' : ''} — ${dinero(precioFinal(p, a))}`];
+      let total = precioFinal(p, a);
+      Object.entries(extras || {}).forEach(([eid, c]) => {
+        const x = PRODUCTOS[eid]; if (!x || !c) return;
+        lineas.push(`• ${c} x ${x.nombre} — ${dinero(precioFinal(x, false) * c)}`); total += precioFinal(x, false) * c;
+      });
+      const texto = lineas.length > 1
+        ? `Hola 👋 Vi el catálogo de MattLau y quiero:\n\n${lineas.join('\n')}\n\n*Total: ${dinero(total)}*\n\n¿Está disponible?`
+        : `Hola 👋 Vi el catálogo de MattLau y me interesa:\n\n${lineas[0]}\n\n¿Está disponible?`;
+      $('oferta').classList.remove('abierto'); pedidoDirecto = null;
       window.open(linkWhatsApp(texto), '_blank');
     }
     const unidadesDe = id => (carrito[id] || 0) + (carrito[id + '|a'] || 0);
@@ -460,8 +556,8 @@
           const off = agotado(p) || unidadesDe(p.id) >= (Number(p.stock) || 0) ? 'disabled' : '';
           const ya = unidadesDe(p.id);
           return `<div class="extra">
-            <div class="mini">${imagen(p, p.portada || p.foto, '')}</div>
-            <div><div class="n">${esc(p.nombre)}</div><div class="p">+${dinero(precioFinal(p, false))}</div></div>
+            <div class="mini" onclick="verFoto('${p.id}')" title="Ver foto">${imagen(p, p.portada || p.foto, '')}</div>
+            <div onclick="verFoto('${p.id}')"><div class="n">${esc(p.nombre)}</div><div class="p">+${dinero(precioFinal(p, false))}</div></div>
             <button class="${ya ? 'ya' : ''}" onclick="agregar('${p.id}')" ${off}>${agotado(p) ? 'Agotado' : ya ? `+1 (${ya})` : '+ Agregar'}</button>
           </div>`; }).join('')}</div>`;
     }
@@ -475,7 +571,7 @@
     }
     function abrirCarrito() { $('panel').classList.add('abierto'); $('fondo').classList.add('abierto'); }
     function cerrarCarrito() { $('panel').classList.remove('abierto'); if (!$('detalle').classList.contains('abierto')) $('fondo').classList.remove('abierto'); }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { cerrarDetalle(); cerrarCarrito(); } });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('lupa').classList.remove('abierto'); cerrarOferta(); cerrarDetalle(); cerrarCarrito(); } });
 
     let tAviso;
     function mostrarAviso(texto) {
