@@ -232,6 +232,10 @@
           <p class="ayuda">Que pese menos de 1 MB y dure menos de 6 segundos, para que el catálogo no se ponga lento.</p>
         </div>
         <div class="seccion">
+          <h3>Complementos</h3>
+          <p>Marca <b>Complemento</b> en los detalles pequeños (bolígrafos, dijes). No salen en el catálogo: aparecen dentro de la bolsa como <b>"¿Agregas un detalle?"</b> cuando el cliente ya tiene otro producto.</p>
+        </div>
+        <div class="seccion">
           <h3>Destacar y ordenar</h3>
           <p>Marca <b>Destacado</b> para que un producto salga de primero. El <b>orden</b> decide el resto: los números más bajos salen antes.</p>
         </div>
@@ -310,6 +314,7 @@
 
       <div class="interruptores">
         <label class="interruptor"><input type="checkbox" id="edNuevo"><span>Novedad<small>Muestra “Novedad” debajo del precio</small></span></label>
+        <label class="interruptor"><input type="checkbox" id="edComplemento"><span>Complemento<small>No sale en el catálogo: se ofrece dentro de la bolsa como "¿Agregas un detalle?"</small></span></label>
         <label class="interruptor"><input type="checkbox" id="edDestacado"><span>Destacado<small>Sale de primero en el catálogo</small></span></label>
         <label class="interruptor"><input type="checkbox" id="edOculto"><span>Ocultar del catálogo<small>No se borra; lo puedes volver a mostrar</small></span></label>
       </div>
@@ -524,7 +529,7 @@
           <div>
             <div class="n" onclick="abrirEditor('${p.id}')">${esc(p.nombre)}</div>
             <div class="p">${precio}${p.aroma ? ` · aroma +${dinero(p.aroma)}` : ''}</div>
-            ${p.oculto ? '<span class="etq">Oculto</span>' : ''}${agotado(p) ? '<span class="etq vino">Agotado</span>' : ''}${d > 0 ? `<span class="etq vino">−${d}%</span>` : ''}${p.destacado ? '<span class="etq oro">Destacado</span>' : ''}
+            ${p.oculto ? '<span class="etq">Oculto</span>' : ''}${agotado(p) ? '<span class="etq vino">Agotado</span>' : ''}${d > 0 ? `<span class="etq vino">−${d}%</span>` : ''}${p.destacado ? '<span class="etq oro">Destacado</span>' : ''}${p.complemento ? '<span class="etq">Complemento</span>' : ''}
           </div>
           <div class="stock">
             <div class="contador">
@@ -561,6 +566,7 @@
       $('edEmoji').value = p.emoji || '🎁';
       $('edNuevo').checked = !!p.nuevo;
       $('edDestacado').checked = !!p.destacado;
+      $('edComplemento').checked = !!p.complemento;
       $('edOculto').checked = !!p.oculto;
       $('edEliminar').classList.toggle('oculto', !id);
       fotosEd = todas(p); portadaEd = p.portada || ''; fotosNuevas = []; fotosQuitadas = [];
@@ -609,6 +615,7 @@
         emoji: $('edEmoji').value.trim() || '🎁',
         nuevo: $('edNuevo').checked || null,
         destacado: $('edDestacado').checked || null,
+        complemento: $('edComplemento').checked || null,
         oculto: $('edOculto').checked || null,
         portada: portadaEd || null,
         foto: fotosEd[0] || '',

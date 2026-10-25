@@ -119,6 +119,18 @@
     .campo { width: 100%; padding: 12px 14px; border: 1px solid var(--linea); border-radius: 999px; font: inherit; font-size: 14px; background: #fff; }
     .btn-enviar { background: var(--tinta); color: var(--papel); padding: 15px; font-size: 12.5px; }
     .btn-enviar:hover { background: var(--vino); border-color: var(--vino); }
+    .extras { border-top: 1px solid var(--linea); padding: 14px 0 6px; margin-top: 6px; }
+    .extras h3 { margin: 0 0 2px; font-family: var(--serif); font-size: 19px; font-weight: 600; }
+    .extras p { margin: 0 0 10px; color: var(--suave); font-size: 12.5px; }
+    .extras-fila { display: flex; gap: 10px; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+    .extras-fila::-webkit-scrollbar { display: none; }
+    .extra { flex: 0 0 112px; background: var(--fondo); border-radius: 14px; padding: 8px; text-align: center; display: flex; flex-direction: column; gap: 4px; }
+    .extra .mini { width: 100%; height: 96px; border-radius: 10px; overflow: hidden; background: var(--papel); display: grid; place-items: center; font-size: 30px; }
+    .extra .mini img { width: 100%; height: 100%; object-fit: cover; }
+    .extra .n { font-size: 12.5px; line-height: 1.2; min-height: 30px; }
+    .extra .p { font-size: 12.5px; color: var(--suave); }
+    .extra button { border: 1px solid var(--tinta); background: var(--tinta); color: var(--papel); border-radius: 999px; padding: 6px 0; font-size: 12px; }
+    .extra button[disabled] { opacity: .35; }
     .vaciar { background: none; border: 0; color: var(--suave); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; }
 
     /* ---------- Detalle de un producto ---------- */
@@ -195,7 +207,7 @@
       <h2>Tu bolsa</h2>
       <button class="cerrar" onclick="cerrarCarrito()" aria-label="Cerrar">×</button>
     </div>
-    <div class="lista" id="lista"></div>
+    <div class="lista"><div id="lista"></div><div class="extras" id="extras" hidden></div></div>
     <div class="panel-pie">
       <div class="total"><span>Total</span><span id="total">$0</span></div>
       <input class="campo" id="nombreCliente" type="text" placeholder="Tu nombre (opcional)" autocomplete="name">
@@ -283,7 +295,7 @@
     // ---------- Lista ordenada ----------
     function visibles() {
       return Object.entries(PRODUCTOS)
-        .filter(([, p]) => p && !p.oculto && p.nombre)
+        .filter(([, p]) => p && !p.oculto && p.nombre && !p.complemento)   // los complementos salen solo en la bolsa
         .map(([id, p]) => ({ ...p, id }))
         .sort((x, y) => (y.destacado ? 1 : 0) - (x.destacado ? 1 : 0) || (Number(x.orden) || 0) - (Number(y.orden) || 0));
     }
@@ -427,6 +439,29 @@
             <button onclick="cambiarCantidad('${x.k}', 1)" aria-label="Agregar uno">+</button>
           </div>
         </div>`).join('') || '<p class="vacio">Tu bolsa está vacía.</p>';
+      pintarExtras(items);
+    }
+
+    // "¿Quieres agregar un detalle?": complementos que solo aparecen dentro de la bolsa
+    function pintarExtras(items) {
+      const hayPrincipal = items.some(x => !x.complemento);
+      const extras = Object.entries(PRODUCTOS)
+        .filter(([, p]) => p && p.complemento && !p.oculto && p.nombre)
+        .map(([id, p]) => ({ ...p, id }))
+        .sort((a, b) => (Number(a.orden) || 0) - (Number(b.orden) || 0));
+      const caja = $('extras');
+      if (!hayPrincipal || !extras.length) { caja.hidden = true; caja.innerHTML = ''; return; }
+      caja.hidden = false;
+      caja.innerHTML = `<h3>¿Agregas un detalle?</h3><p>Perfectos para acompañar tu regalo</p>
+        <div class="extras-fila">${extras.map(p => {
+          const off = agotado(p) || unidadesDe(p.id) >= (Number(p.stock) || 0) ? 'disabled' : '';
+          const ya = unidadesDe(p.id);
+          return `<div class="extra">
+            <div class="mini">${imagen(p, p.portada || p.foto, '')}</div>
+            <div class="n">${esc(p.nombre)}</div>
+            <div class="p">+${dinero(precioFinal(p, false))}</div>
+            <button onclick="agregar('${p.id}')" ${off}>${agotado(p) ? 'Agotado' : ya ? 'Agregar otro' : 'Agregar'}</button>
+          </div>`; }).join('')}</div>`;
     }
     function pedirCarrito() {
       const items = itemsCarrito(); if (!items.length) return;
