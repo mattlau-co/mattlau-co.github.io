@@ -157,7 +157,19 @@
     .oferta-total span:last-child { font-family: var(--serif); font-size: 26px; font-weight: 600; }
     .lupa { position: fixed; inset: 0; z-index: 65; background: rgba(20,16,14,.88); display: none; place-items: center; padding: 20px; cursor: zoom-out; }
     .lupa.abierto { display: grid; }
-    .lupa img { max-width: min(92vw, 520px); max-height: 78vh; border-radius: 16px; }
+    .lupa img, .lupa video { max-width: min(94vw, 720px); max-height: 80vh; border-radius: 16px; display: block; margin: 0 auto; }
+    .lupa-medio { touch-action: pinch-zoom; }
+    .lupa .flecha { position: fixed; top: 50%; }
+    .lupa .cerrar-lupa { position: fixed; top: 14px; right: 16px; background: rgba(255,255,255,.15); color: #fff; border: 0; width: 42px; height: 42px; border-radius: 999px; font-size: 26px; line-height: 1; }
+    .lupa .contador { color: rgba(255,255,255,.7); font-size: 12px; text-align: center; margin-top: 6px; font-family: var(--sans); }
+    .galeria-caja { position: relative; }
+    .galeria > * { cursor: zoom-in; }
+    .flecha { position: absolute; top: 50%; transform: translateY(-50%); z-index: 3; width: 38px; height: 38px; border-radius: 999px; border: 0;
+              background: rgba(251,248,243,.88); color: var(--tinta); font-size: 22px; line-height: 1; box-shadow: 0 2px 8px rgba(0,0,0,.18); display: grid; place-items: center; cursor: pointer; }
+    .flecha.izq { left: 8px; } .flecha.der { right: 8px; }
+    .lupa .flecha.izq { left: 10px; } .lupa .flecha.der { right: 10px; }
+    .zoom-ico { position: absolute; right: 10px; bottom: 10px; z-index: 3; background: rgba(43,36,32,.6); color: #fff; border-radius: 999px; padding: 5px 10px; font-size: 11.5px; pointer-events: none; }
+    .puntos span { cursor: pointer; }
     .lupa p { color: #fff; text-align: center; font-family: var(--serif); font-size: 22px; margin: 12px 0 0; }
     .vaciar { background: none; border: 0; color: var(--suave); font-size: 12.5px; text-decoration: underline; text-underline-offset: 3px; }
 
@@ -280,7 +292,12 @@
     <div class="oferta-caja" id="ofertaCaja"></div>
   </div>
   <!-- Ver la foto de un detalle en grande -->
-  <div class="lupa" id="lupa" onclick="this.classList.remove('abierto')"><div><img id="lupaImg" alt=""><p id="lupaTxt"></p></div></div>
+  <div class="lupa" id="lupa" onclick="cerrarLupa()">
+    <button class="cerrar-lupa" onclick="cerrarLupa()" aria-label="Cerrar">×</button>
+    <button class="flecha izq" id="lupaIzq" onclick="event.stopPropagation(); pasoLupa(-1)" aria-label="Anterior">‹</button>
+    <div onclick="event.stopPropagation()"><div class="lupa-medio" id="lupaMedio"></div><p id="lupaTxt"></p><div class="contador" id="lupaCont"></div></div>
+    <button class="flecha der" id="lupaDer" onclick="event.stopPropagation(); pasoLupa(1)" aria-label="Siguiente">›</button>
+  </div>
 
   <div class="aviso" id="aviso"></div>
 
@@ -411,14 +428,22 @@
       const off = agotado(p) ? 'disabled' : '';
       const fotos = todasLasFotos(p);
       const slides = [];
-      if (p.video) slides.push(`<video src="${esc(p.video)}" poster="${esc(rutaFoto(p.foto))}" muted loop playsinline autoplay></video>`);
-      fotos.forEach(f => slides.push(imagen(p, f)));
-      if (p.portada) slides.push(imagen(p, p.portada));
+      galeriaItems = [];
+      if (p.video) { slides.push(`<video src="${esc(p.video)}" poster="${esc(rutaFoto(p.foto))}" muted loop playsinline autoplay></video>`); galeriaItems.push({ video: p.video, poster: rutaFoto(p.foto) }); }
+      fotos.forEach(f => { slides.push(imagen(p, f)); if (rutaFoto(f)) galeriaItems.push({ src: rutaFoto(f) }); });
+      if (p.portada) { slides.push(imagen(p, p.portada)); if (rutaFoto(p.portada)) galeriaItems.push({ src: rutaFoto(p.portada) }); }
       if (!slides.length) slides.push(imagen(p, ''));
+      galeriaNombre = p.nombre + ' · ' + dinero(precioFinal(p, false));
+      const varias = slides.length > 1;
       $('detalleCaja').innerHTML = `
         <button class="cerrar" onclick="cerrarDetalle()" aria-label="Cerrar">×</button>
-        <div class="galeria" id="galeria" onscroll="moverPuntos()">${slides.join('')}</div>
-        <div class="puntos" id="puntos">${slides.length > 1 ? slides.map((_, k) => `<span class="${k ? '' : 'on'}"></span>`).join('') : ''}</div>
+        <div class="galeria-caja">
+          <div class="galeria" id="galeria" onscroll="moverPuntos()" onclick="abrirLupa(galeriaPos())">${slides.join('')}</div>
+          ${varias ? `<button class="flecha izq" onclick="pasoGaleria(-1)" aria-label="Anterior">‹</button>
+          <button class="flecha der" onclick="pasoGaleria(1)" aria-label="Siguiente">›</button>` : ''}
+          ${galeriaItems.length ? '<span class="zoom-ico">⤢ Ampliar</span>' : ''}
+        </div>
+        <div class="puntos" id="puntos">${varias ? slides.map((_, k) => `<span class="${k ? '' : 'on'}" onclick="irGaleria(${k})"></span>`).join('') : ''}</div>
         <div class="info">
           <h3 class="nombre">${esc(p.nombre)}</h3>
           <div class="precio">${htmlPrecio(p, conAroma[id])}</div>
@@ -433,6 +458,31 @@
       $('detalle').classList.add('abierto'); $('fondo').classList.add('abierto');
       $('detalleCaja').querySelectorAll('video').forEach(v => { v.muted = true; v.play().catch(() => {}); });
     }
+    let galeriaItems = [], galeriaNombre = '', lupaPos = 0;
+    function galeriaPos() { const g = $('galeria'); return g ? Math.round(g.scrollLeft / g.clientWidth) : 0; }
+    function irGaleria(k) {
+      const g = $('galeria'); if (!g) return;
+      const n = g.children.length; k = (k + n) % n;
+      g.scrollTo({ left: k * g.clientWidth, behavior: 'smooth' });
+    }
+    function pasoGaleria(d) { irGaleria(galeriaPos() + d); }
+    function abrirLupa(k) {
+      if (!galeriaItems.length) return;
+      lupaPos = Math.min(Math.max(k, 0), galeriaItems.length - 1);
+      pintarLupa(); $('lupa').classList.add('abierto');
+    }
+    function pintarLupa() {
+      const it = galeriaItems[lupaPos]; if (!it) return;
+      $('lupaMedio').innerHTML = it.video
+        ? `<video src="${esc(it.video)}" poster="${esc(it.poster || '')}" controls autoplay loop playsinline muted></video>`
+        : `<img src="${esc(it.src)}" alt="">`;
+      $('lupaTxt').textContent = galeriaNombre;
+      const varias = galeriaItems.length > 1;
+      $('lupaCont').textContent = varias ? `${lupaPos + 1} de ${galeriaItems.length}` : '';
+      $('lupaIzq').style.display = $('lupaDer').style.display = varias ? '' : 'none';
+    }
+    function pasoLupa(d) { const n = galeriaItems.length; if (!n) return; lupaPos = (lupaPos + d + n) % n; pintarLupa(); }
+    function cerrarLupa() { $('lupa').classList.remove('abierto'); $('lupaMedio').innerHTML = ''; }
     function moverPuntos() {
       const g = $('galeria'); if (!g) return;
       const k = Math.round(g.scrollLeft / g.clientWidth);
@@ -449,8 +499,8 @@
       const p = PRODUCTOS[id]; if (!p) return;
       const src = rutaFoto(p.portada || p.foto);
       if (!src) return;
-      $('lupaImg').src = src; $('lupaTxt').textContent = p.nombre + ' · ' + dinero(precioFinal(p, false));
-      $('lupa').classList.add('abierto');
+      galeriaItems = [{ src }]; galeriaNombre = p.nombre + ' · ' + dinero(precioFinal(p, false));
+      abrirLupa(0);
     }
 
     const complementosDisponibles = () => Object.entries(PRODUCTOS)
@@ -598,7 +648,8 @@
     }
     function abrirCarrito() { $('panel').classList.add('abierto'); $('fondo').classList.add('abierto'); }
     function cerrarCarrito() { $('panel').classList.remove('abierto'); if (!$('detalle').classList.contains('abierto')) $('fondo').classList.remove('abierto'); }
-    document.addEventListener('keydown', e => { if (e.key === 'Escape') { $('lupa').classList.remove('abierto'); cerrarOferta(); cerrarDetalle(); cerrarCarrito(); } });
+    document.addEventListener('keydown', e => { if ($('lupa').classList.contains('abierto') && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) { pasoLupa(e.key === 'ArrowRight' ? 1 : -1); return; }
+      if (e.key === 'Escape') { cerrarLupa(); cerrarOferta(); cerrarDetalle(); cerrarCarrito(); } });
 
     let tAviso;
     function mostrarAviso(texto) {
